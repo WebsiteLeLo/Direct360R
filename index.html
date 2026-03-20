@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Everyday360R — Channel Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080810; --bg2:#0e0e1a; --bg3:#141422; --card:#0f0f1e;
+    --border:rgba(255,255,255,0.07); --border-red:rgba(255,45,45,0.3);
+    --red:#ff2d2d; --red2:#ff7070; --red-dim:rgba(255,45,45,0.1);
+    --white:#eeeeff; --muted:#6868a0; --text:#b0b0d0;
+    --blue:#6060ff; --blue-dim:rgba(96,96,255,0.1);
+    --green:#22c55e; --green-dim:rgba(34,197,94,0.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+  /* ══ SETUP ══ */
+  #setupScreen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:800;padding:20px;overflow-y:auto;}
+  .setup-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;max-width:580px;width:100%;text-align:center;margin:auto;}
+  .setup-logo{width:64px;height:64px;background:var(--red);border-radius:16px;display:grid;place-items:center;font-size:28px;margin:0 auto 16px;box-shadow:0 0 40px rgba(255,45,45,0.3);}
+  .setup-title{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:3px;margin-bottom:6px;}
+  .setup-sub{font-size:13px;color:var(--muted);margin-bottom:22px;line-height:1.7;}
+  .setup-block{background:var(--bg3);border-radius:12px;padding:18px 20px;margin-bottom:12px;text-align:left;}
+  .setup-block-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;}
+  .setup-block ol{padding-left:18px;}
+  .setup-block li{font-size:13px;color:var(--text);line-height:1.9;}
+  .setup-block a{color:var(--red2);}
+  .setup-block code{background:rgba(255,255,255,0.07);padding:1px 7px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;}
+  .setup-block strong{color:var(--white);}
+  .warn-box{background:rgba(255,165,0,0.07);border:1px solid rgba(255,165,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:12px;text-align:left;font-size:12px;color:#ffb347;line-height:1.7;}
+  .warn-box strong{color:#ffd080;}
+  .setup-label{font-size:11px;color:var(--muted);text-align:left;display:block;margin-bottom:5px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;}
+  .setup-input{width:100%;padding:12px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--white);font-family:'DM Mono',monospace;font-size:13px;outline:none;margin-bottom:10px;transition:border-color .2s;}
+  .setup-input:focus{border-color:var(--border-red);}
+  .setup-input::placeholder{color:var(--muted);}
+  .setup-btn{width:100%;padding:13px;background:var(--red);border:none;border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s;margin-top:4px;}
+  .setup-btn:hover{background:#e02020;}
+  .setup-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .setup-err{margin-top:10px;font-size:12px;color:var(--red2);min-height:18px;text-align:left;}
+
+  /* ══ NAV ══ */
+  nav{position:sticky;top:0;z-index:200;background:rgba(8,8,16,0.93);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .nav-brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0;}
+  .nav-icon{width:32px;height:32px;background:var(--red);border-radius:7px;display:grid;place-items:center;font-size:15px;}
+  .nav-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;}
+  .nav-title span{color:var(--red);}
+  .nav-right{display:flex;align-items:center;gap:10px;}
+  .search-wrap{position:relative;}
+  .search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;width:13px;height:13px;}
+  #searchInput{background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:7px 14px 7px 32px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:200px;transition:border-color .2s,width .3s;}
+  #searchInput:focus{border-color:var(--border-red);width:240px;}
+
+  /* User pill in nav */
+  .user-pill{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:5px 14px 5px 5px;cursor:pointer;transition:border-color .2s;}
+  .user-pill:hover{border-color:var(--border-red);}
+  .user-avatar-sm{width:28px;height:28px;border-radius:50%;object-fit:cover;}
+  .user-avatar-sm-fallback{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--red),#7a0000);display:grid;place-items:center;font-size:12px;font-weight:700;}
+  .user-name-sm{font-size:12px;font-weight:500;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .sub-btn{background:var(--red);color:white;border:none;border-radius:100px;padding:7px 16px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;text-decoration:none;transition:background .2s;white-space:nowrap;}
+  .sub-btn:hover{background:#e02020;}
+
+  /* ══ HERO ══ */
+  .hero{background:linear-gradient(180deg,#180606 0%,var(--bg) 100%);border-bottom:1px solid var(--border);padding:32px 24px 24px;position:relative;overflow:hidden;}
+  .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(255,45,45,0.07) 0%,transparent 65%);pointer-events:none;}
+  .hero-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .avatar{width:76px;height:76px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#ff2d2d,#7a0000);display:grid;place-items:center;font-family:'Bebas Neue',sans-serif;font-size:26px;border:3px solid rgba(255,45,45,0.25);box-shadow:0 0 30px rgba(255,45,45,0.18);}
+  .hero-meta{flex:1;min-width:180px;}
+  .hero-name{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;line-height:1;margin-bottom:4px;}
+  .hero-handle{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .hero-stats{display:flex;gap:20px;}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;}
+  .stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+  /* ══ TABS ══ */
+  .tabs{border-bottom:1px solid var(--border);padding:0 24px;display:flex;overflow-x:auto;}
+  .tab{padding:12px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+  .tab.active{color:var(--white);border-bottom-color:var(--red);}
+  .tab:hover:not(.active){color:var(--text);}
+
+  /* ══ MAIN ══ */
+  .main{max-width:1180px;margin:0 auto;padding:24px;}
+  .toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+  .toolbar-label{font-family:'DM Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);}
+  .pills{display:flex;gap:6px;}
+  .pill{padding:5px 13px;border-radius:100px;border:1px solid var(--border);font-size:12px;color:var(--muted);cursor:pointer;background:transparent;font-family:'DM Sans',sans-serif;transition:all .2s;}
+  .pill.active,.pill:hover{background:var(--red-dim);border-color:var(--border-red);color:var(--red2);}
+
+  /* ══ GRID ══ */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;cursor:pointer;transition:transform .25s,border-color .25s,box-shadow .25s;animation:rise .35s ease both;}
+  .card:hover{transform:translateY(-4px);border-color:rgba(255,45,45,0.22);box-shadow:0 12px 36px rgba(0,0,0,0.4);}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .thumb{position:relative;aspect-ratio:16/9;background:var(--bg3);overflow:hidden;}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+  .card:hover .thumb img{transform:scale(1.05);}
+  .thumb-over{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 60%);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;}
+  .card:hover .thumb-over{opacity:1;}
+  .play-btn-card{width:52px;height:52px;background:rgba(255,45,45,0.92);border-radius:50%;display:grid;place-items:center;transform:scale(0.8);transition:transform .2s;box-shadow:0 0 24px rgba(255,45,45,0.5);}
+  .card:hover .play-btn-card{transform:scale(1);}
+  .dur{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,0.82);color:#fff;font-family:'DM Mono',monospace;font-size:11px;padding:2px 6px;border-radius:4px;}
+  .badge-new{position:absolute;top:7px;left:7px;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;}
+  .card-body{padding:12px 14px 14px;}
+  .card-title{font-size:14px;font-weight:600;line-height:1.4;color:var(--white);margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .card-sub{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:10px;font-family:'DM Mono',monospace;}
+  .card-acts{display:flex;gap:6px;}
+  .act-btn{flex:1;padding:6px 5px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'DM Sans',sans-serif;transition:all .2s;text-decoration:none;}
+  .act-btn:hover,.act-btn.liked{background:var(--red-dim);border-color:var(--border-red);color:var(--red2);}
+  .act-btn.cmt-card:hover{background:var(--blue-dim);border-color:rgba(96,96,255,0.3);color:#a0a0ff;}
+
+  /* ══ PLAYER PAGE ══ */
+  #playerPage{position:fixed;inset:0;background:var(--bg);z-index:300;display:none;flex-direction:column;}
+  #playerPage.open{display:flex;}
+  .player-topbar{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(8,8,16,0.95);backdrop-filter:blur(16px);flex-shrink:0;}
+  .back-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .back-btn:hover{background:var(--red-dim);border-color:var(--border-red);color:var(--red2);}
+  .topbar-title{font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1.5px;color:var(--white);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* Two columns */
+  .player-body{display:grid;grid-template-columns:1fr 400px;flex:1;min-height:0;overflow:hidden;}
+  @media(max-width:860px){.player-body{grid-template-columns:1fr;overflow-y:auto;}}
+
+  /* Left */
+  .player-left{display:flex;flex-direction:column;overflow-y:auto;border-right:1px solid var(--border);}
+  .video-frame-wrap{width:100%;background:#000;position:relative;flex-shrink:0;}
+  .video-frame-wrap::before{content:'';display:block;padding-top:56.25%;}
+  .video-frame-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;z-index:1;}
+  .video-error{position:absolute;inset:0;background:#040407;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;z-index:2;}
+  .video-error.show{display:flex;}
+  .ve-icon{font-size:40px;opacity:.5;}
+  .ve-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;}
+  .ve-sub{font-size:12px;color:var(--muted);max-width:340px;line-height:1.7;}
+  .ve-btn{padding:9px 20px;border-radius:100px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:var(--red);border:none;color:white;transition:background .2s;}
+  .ve-btn:hover{background:#e02020;}
+
+  .video-info{padding:18px 22px 22px;flex-shrink:0;}
+  .vi-title{font-size:17px;font-weight:700;line-height:1.4;margin-bottom:10px;}
+  .vi-meta{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+  .vi-views{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);}
+  .vi-actions{display:flex;gap:7px;flex-wrap:wrap;}
+  .vi-btn{padding:7px 16px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none;transition:all .2s;}
+  .vi-btn:hover,.vi-btn.liked{background:var(--red-dim);border-color:var(--border-red);color:var(--red2);}
+  .vi-btn.yt-link{background:var(--red);border-color:var(--red);color:white;font-weight:600;}
+  .vi-btn.yt-link:hover{background:#e02020;}
+  .vi-desc{font-size:13px;color:var(--muted);line-height:1.75;white-space:pre-wrap;max-height:110px;overflow-y:auto;}
+
+  /* ══ COMMENTS PANEL ══ */
+  .comments-panel{display:flex;flex-direction:column;overflow:hidden;}
+
+  .comments-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .comments-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;display:flex;align-items:center;gap:8px;}
+  .cmt-count{background:var(--red-dim);color:var(--red2);font-family:'DM Mono',monospace;font-size:11px;padding:2px 8px;border-radius:100px;border:1px solid var(--border-red);}
+
+  /* Composer */
+  .cmt-composer{padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg2);}
+
+  /* Google sign in prompt */
+  .google-signin-box{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:0;}
+  .google-signin-box p{font-size:13px;color:var(--muted);flex:1;line-height:1.5;}
+  .google-signin-box p strong{color:var(--white);}
+  .g-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:8px;background:white;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#333;cursor:pointer;white-space:nowrap;transition:box-shadow .2s;flex-shrink:0;}
+  .g-btn:hover{box-shadow:0 2px 12px rgba(255,255,255,0.2);}
+  .g-btn svg{width:18px;height:18px;flex-shrink:0;}
+
+  /* Logged-in composer */
+  .composer-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .composer-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;}
+  .composer-avatar-fallback{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--red),#7a0000);display:grid;place-items:center;font-size:13px;font-weight:700;flex-shrink:0;}
+  .composer-who{font-size:12px;font-weight:600;color:var(--white);}
+  .composer-who small{display:block;font-size:11px;color:var(--green);font-weight:400;}
+  .cmt-textarea{width:100%;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:none;height:70px;line-height:1.5;transition:border-color .2s;}
+  .cmt-textarea:focus{border-color:rgba(96,96,255,0.4);}
+  .cmt-textarea::placeholder{color:var(--muted);}
+  .cmt-footer{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .cmt-hint{font-size:11px;color:var(--muted);}
+  .post-btn{padding:7px 18px;border-radius:100px;background:var(--blue);border:none;color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px;}
+  .post-btn:hover{background:#4a4aee;}
+  .post-btn:disabled{opacity:.45;cursor:not-allowed;}
+  .post-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+  .post-spinner.show{display:block;}
+
+  /* Comments list */
+  .comments-list{flex:1;overflow-y:auto;}
+  .comment-item{padding:13px 18px;border-bottom:1px solid var(--border);animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .comment-item:last-child{border-bottom:none;}
+  .cmt-row{display:flex;gap:10px;}
+  .cmt-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#2a2a6a,#111128);display:grid;place-items:center;font-size:13px;font-weight:600;overflow:hidden;}
+  .cmt-avatar img{width:100%;height:100%;object-fit:cover;}
+  .cmt-body{flex:1;}
+  .cmt-author{font-size:13px;font-weight:600;color:var(--white);margin-bottom:2px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+  .cmt-date{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;}
+  .mine-badge{background:var(--green-dim);color:var(--green);font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid rgba(34,197,94,0.3);font-weight:600;}
+  .cmt-text{font-size:13px;color:var(--text);line-height:1.65;margin-top:4px;word-break:break-word;}
+  .cmt-likes{display:flex;align-items:center;gap:4px;margin-top:6px;font-size:11px;color:var(--muted);}
+  .replies-toggle{font-size:12px;color:var(--blue);cursor:pointer;margin-top:6px;display:inline-flex;align-items:center;gap:4px;font-weight:500;}
+  .replies-toggle:hover{color:#9090ff;}
+  .replies-wrap{margin-top:8px;padding-left:10px;border-left:2px solid var(--border);display:none;}
+  .reply-item{padding:7px 0;display:flex;gap:8px;}
+  .reply-av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#222260,#0e0e22);display:grid;place-items:center;font-size:10px;font-weight:600;flex-shrink:0;overflow:hidden;}
+  .reply-av img{width:100%;height:100%;object-fit:cover;}
+  .reply-body{flex:1;}
+  .reply-author{font-size:12px;font-weight:600;color:var(--white);margin-bottom:2px;}
+  .reply-text{font-size:12px;color:var(--text);line-height:1.6;}
+
+  .cmt-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:36px 18px;color:var(--muted);font-size:13px;}
+  .mini-spin{width:18px;height:18px;border:2px solid var(--bg3);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .cmt-empty{text-align:center;padding:36px 18px;color:var(--muted);}
+  .load-more-cmt{width:100%;padding:11px;background:transparent;border:none;border-top:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
+  .load-more-cmt:hover{background:var(--bg3);color:var(--white);}
+
+  /* ══ MISC ══ */
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;gap:14px;}
+  .spinner{width:38px;height:38px;border:3px solid var(--bg3);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;}
+  .loading-txt{font-size:13px;color:var(--muted);}
+  .empty{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-icon{font-size:40px;opacity:.25;margin-bottom:12px;}
+  .empty-txt{font-size:14px;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--bg2);border:1px solid var(--border-red);color:var(--white);padding:9px 20px;border-radius:100px;font-size:13px;font-weight:500;z-index:999;opacity:0;pointer-events:none;transition:all .28s;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .load-more-wrap{text-align:center;margin-top:28px;}
+  .load-more{padding:10px 28px;border-radius:100px;border:1px solid var(--border);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
+  .load-more:hover{background:var(--red-dim);border-color:var(--border-red);color:var(--red2);}
+  footer{border-top:1px solid var(--border);padding:18px 24px;text-align:center;font-size:12px;color:var(--muted);margin-top:48px;}
+  footer a{color:var(--red2);text-decoration:none;}
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:3px;}
+  @media(max-width:640px){
+    nav{padding:0 12px;}#searchInput{display:none;}
+    .hero{padding:18px 14px;}.main{padding:16px 14px;}
+    .grid{grid-template-columns:1fr;}
+    .sub-btn span{display:none;}
+    .player-topbar{padding:10px 14px;}
+    .video-info{padding:14px 16px;}
+    .player-body{overflow-y:auto;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══════════════════════════════════════════════════ -->
+<div id="setupScreen">
+  <div class="setup-box">
+    <div class="setup-logo">▶</div>
+    <div class="setup-title">EVERYDAY<span style="color:var(--red)">360R</span></div>
+    <p class="setup-sub">You need two things: a YouTube API Key (to load videos & comments) and a Google OAuth Client ID (to post real comments while logged in).</p>
+
+    <div class="setup-block">
+      <div class="setup-block-title">① YouTube Data API Key</div>
+      <ol>
+        <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → create/select a project</li>
+        <li>Enable <code>YouTube Data API v3</code></li>
+        <li>Go to <strong>Credentials → Create API Key</strong></li>
+      </ol>
+    </div>
+
+    <div class="setup-block">
+      <div class="setup-block-title">② OAuth 2.0 Client ID (for posting comments)</div>
+      <ol>
+        <li>In the same project → <strong>Credentials → Create OAuth 2.0 Client ID</strong></li>
+        <li>Application type: <code>Web application</code></li>
+        <li>Authorised JavaScript origins: add <code>http://localhost:8080</code> <strong>and</strong> <code>null</code> (for file://)</li>
+        <li>Copy the <strong>Client ID</strong> (ends in .apps.googleusercontent.com)</li>
+        <li>Also enable <code>YouTube Data API v3</code> scope in OAuth consent screen</li>
+      </ol>
+    </div>
+
+    <div class="warn-box">
+      <strong>⚠️ Important:</strong> To post real comments, serve this file via a local server (<code>python -m http.server 8080</code>) and open <code>http://localhost:8080</code>. Google OAuth doesn't work on <code>file://</code> for security reasons. Video playback works on file:// but comment posting needs localhost.
+    </div>
+
+    <label class="setup-label">YouTube Data API Key</label>
+    <input class="setup-input" id="apiKeyInput" type="text" placeholder="AIza…" autocomplete="off">
+
+    <label class="setup-label">OAuth 2.0 Client ID</label>
+    <input class="setup-input" id="clientIdInput" type="text" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off">
+
+    <button class="setup-btn" id="goBtn" onclick="startApp()">▶  Enter Channel</button>
+    <div class="setup-err" id="setupErr"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ════════════════════════════════════════════════ -->
+<div id="app" style="display:none">
+  <nav>
+    <div class="nav-brand" onclick="closePlayer()">
+      <div class="nav-icon">▶</div>
+      <span class="nav-title">EVERY<span>DAY</span>360R</span>
+    </div>
+    <div class="nav-right">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="searchInput" type="text" placeholder="Search videos…" oninput="onSearch(this.value)">
+      </div>
+      <!-- User pill shown after login -->
+      <div id="userPill" class="user-pill" style="display:none" onclick="signOut()">
+        <div id="navAvatarWrap"></div>
+        <span class="user-name-sm" id="navUserName"></span>
+      </div>
+      <a class="sub-btn" href="https://www.youtube.com/@Everyday360R?sub_confirmation=1" target="_blank">🔔 <span>Subscribe</span></a>
+    </div>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="avatar">E3</div>
+      <div class="hero-meta">
+        <div class="hero-name">Everyday<span style="color:var(--red)">360R</span></div>
+        <div class="hero-handle">@Everyday360R</div>
+        <div class="hero-stats">
+          <div><div class="stat-num" id="statVideos">—</div><div class="stat-lbl">Videos</div></div>
+          <div><div class="stat-num" id="statSubs">—</div><div class="stat-lbl">Subscribers</div></div>
+          <div><div class="stat-num" id="statViews">—</div><div class="stat-lbl">Total Views</div></div>
+        </div>
+      </div>
+      <a class="sub-btn" href="https://www.youtube.com/@Everyday360R?sub_confirmation=1" target="_blank" style="font-size:14px;padding:10px 20px">🔔 Subscribe</a>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-videos" onclick="switchTab('videos')">Videos</div>
+    <div class="tab" id="tab-liked"  onclick="switchTab('liked')">❤️ Liked</div>
+    <div class="tab" id="tab-about"  onclick="switchTab('about')">About</div>
+  </div>
+
+  <div class="main">
+    <div id="pane-videos">
+      <div class="toolbar">
+        <span class="toolbar-label" id="vidCountLabel">Loading…</span>
+        <div class="pills">
+          <button class="pill active" onclick="setSort('date',this)">Latest</button>
+          <button class="pill" onclick="setSort('viewCount',this)">Popular</button>
+          <button class="pill" onclick="setSort('title',this)">A–Z</button>
+        </div>
+      </div>
+      <div id="videoGrid" class="grid"></div>
+      <div id="loadingState" class="loading"><div class="spinner"></div><div class="loading-txt">Fetching videos…</div></div>
+      <div id="emptyState" class="empty" style="display:none"><div class="empty-icon">🎬</div><div class="empty-txt">No videos found.</div></div>
+      <div class="load-more-wrap" id="loadMoreWrap" style="display:none"><button class="load-more" onclick="loadMore()">Load More Videos</button></div>
+    </div>
+    <div id="pane-liked" style="display:none">
+      <div class="toolbar"><span class="toolbar-label">Your Liked Videos</span></div>
+      <div id="likedGrid" class="grid"></div>
+      <div id="likedEmpty" class="empty" style="display:none"><div class="empty-icon">💔</div><div class="empty-txt">No liked videos yet.</div></div>
+    </div>
+    <div id="pane-about" style="display:none;padding:32px 0">
+      <h2 style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;margin-bottom:14px">About</h2>
+      <p id="aboutDesc" style="color:var(--muted);line-height:1.85;max-width:560px;font-size:14px;margin-bottom:22px">Loading…</p>
+      <a class="sub-btn" href="https://www.youtube.com/@Everyday360R" target="_blank" style="display:inline-flex;font-size:14px;padding:10px 22px;text-decoration:none">▶ Visit YouTube Channel</a>
+    </div>
+  </div>
+  <footer>Made with ❤️ for <a href="https://www.youtube.com/@Everyday360R" target="_blank">@Everyday360R</a></footer>
+</div>
+
+<!-- ══ PLAYER + COMMENTS ════════════════════════════════════════ -->
+<div id="playerPage">
+  <div class="player-topbar">
+    <button class="back-btn" onclick="closePlayer()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back
+    </button>
+    <div class="topbar-title" id="topbarTitle"></div>
+    <a class="sub-btn" href="https://www.youtube.com/@Everyday360R?sub_confirmation=1" target="_blank" style="font-size:12px;padding:6px 13px;flex-shrink:0">🔔 Subscribe</a>
+  </div>
+
+  <div class="player-body">
+    <!-- Left: video + info -->
+    <div class="player-left">
+      <div class="video-frame-wrap" id="videoFrameWrap">
+        <div class="video-error" id="videoError">
+          <div class="ve-icon">🔒</div>
+          <div class="ve-title">Embedding Restricted</div>
+          <div class="ve-sub">This video cannot be embedded. Watch it on YouTube directly.</div>
+          <a class="ve-btn" id="veWatchBtn" href="#" target="_blank">▶ Watch on YouTube</a>
+        </div>
+      </div>
+      <div class="video-info">
+        <div class="vi-title" id="viTitle"></div>
+        <div class="vi-meta">
+          <span class="vi-views" id="viViews"></span>
+          <div class="vi-actions">
+            <button class="vi-btn" id="viLikeBtn" onclick="playerLike()"><span id="viLikeIco">♡</span> <span id="viLikeTxt">Like</span></button>
+            <a class="vi-btn yt-link" id="viYtBtn" href="#" target="_blank">↗ YouTube</a>
+          </div>
+        </div>
+        <div class="vi-desc" id="viDesc"></div>
+      </div>
+    </div>
+
+    <!-- Right: comments -->
+    <div class="comments-panel">
+      <div class="comments-header">
+        <div class="comments-title">💬 Comments <span class="cmt-count" id="cmtCount">—</span></div>
+      </div>
+
+      <div class="cmt-composer" id="cmtComposer">
+        <!-- Shown when not logged in -->
+        <div id="signinBox" class="google-signin-box">
+          <p><strong>Sign in with Google</strong> to post real comments directly on YouTube.</p>
+          <button class="g-btn" onclick="googleSignIn()">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+            Sign in with Google
+          </button>
+        </div>
+
+        <!-- Shown when logged in -->
+        <div id="composerBox" style="display:none">
+          <div class="composer-top">
+            <div id="composerAvatarWrap"></div>
+            <div class="composer-who">
+              <span id="composerName"></span>
+              <small>✓ Connected to YouTube</small>
+            </div>
+          </div>
+          <textarea class="cmt-textarea" id="cmtTextarea" placeholder="Write your comment… (Ctrl+Enter to post)" maxlength="500"></textarea>
+          <div class="cmt-footer">
+            <span class="cmt-hint" id="cmtHint">Posts directly on YouTube</span>
+            <button class="post-btn" id="postBtn" onclick="postComment()">
+              <div class="post-spinner" id="postSpinner"></div>
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+              Post
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="comments-list" id="commentsList">
+        <div class="cmt-loading"><div class="mini-spin"></div> Loading comments…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Google Identity Services -->
+<script src="https://accounts.google.com/gsi/client" async></script>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────
+const CHANNEL_HANDLE = 'Everyday360R';
+const MAX_RESULTS    = 50;
+const MAX_CMT        = 30;
+const SCOPES         = 'https://www.googleapis.com/auth/youtube.force-ssl';
+
+// ── STATE ────────────────────────────────────────────────────────
+let API_KEY      = localStorage.getItem('yt_api_key')   || '';
+let CLIENT_ID    = localStorage.getItem('yt_client_id') || '';
+let channelId    = '';
+let allVideos    = [];
+let nextPageToken= '';
+let currentSort  = 'date';
+let searchQuery  = '';
+let currentVid   = null;
+let cmtNextToken = '';
+let likedSet     = new Set(JSON.parse(localStorage.getItem('e360r_liked')||'[]'));
+
+// OAuth
+let accessToken  = '';
+let userProfile  = null; // {name, picture}
+let tokenClient  = null;
+
+// ── AUTO-BOOT ────────────────────────────────────────────────────
+if (API_KEY && CLIENT_ID) {
+  document.getElementById('apiKeyInput').value  = API_KEY;
+  document.getElementById('clientIdInput').value= CLIENT_ID;
+  startApp();
+} else {
+  if (API_KEY)   document.getElementById('apiKeyInput').value  = API_KEY;
+  if (CLIENT_ID) document.getElementById('clientIdInput').value= CLIENT_ID;
+}
+
+// ── START ────────────────────────────────────────────────────────
+async function startApp() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const cid = document.getElementById('clientIdInput').value.trim();
+  if (!key) { setErr('Please enter your YouTube API Key.'); return; }
+  if (!cid) { setErr('Please enter your OAuth 2.0 Client ID.'); return; }
+  API_KEY = key; CLIENT_ID = cid; setErr('');
+  const btn = document.getElementById('goBtn');
+  btn.disabled = true; btn.textContent = 'Loading…';
+  try {
+    await resolveChannelId();
+    await fetchChannelStats();
+    localStorage.setItem('yt_api_key',   API_KEY);
+    localStorage.setItem('yt_client_id', CLIENT_ID);
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    initOAuth();
+    await fetchVideos(true);
+  } catch(e) {
+    setErr('❌ ' + (e.message||'Check your API key and try again.'));
+    btn.disabled = false; btn.textContent = '▶  Enter Channel';
+  }
+}
+function setErr(m){ document.getElementById('setupErr').textContent = m; }
+
+// ── OAUTH INIT ───────────────────────────────────────────────────
+function initOAuth() {
+  // Wait for GSI script to load
+  const init = () => {
+    if (!window.google?.accounts?.oauth2) { setTimeout(init, 300); return; }
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: onTokenResponse,
+    });
+  };
+  init();
+}
+
+function googleSignIn() {
+  if (!tokenClient) { showToast('⚠️ OAuth not ready yet. Try again.'); return; }
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
+
+async function onTokenResponse(resp) {
+  if (resp.error) { showToast('❌ Sign in failed: ' + resp.error); return; }
+  accessToken = resp.access_token;
+  // Fetch user profile
+  try {
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+    userProfile = await r.json();
+    updateUserUI();
+    showToast('✅ Signed in as ' + (userProfile.name||'You'));
+  } catch(e) {
+    showToast('⚠️ Signed in but couldn\'t fetch profile.');
+    userProfile = { name: 'You', picture: null };
+    updateUserUI();
+  }
+}
+
+function updateUserUI() {
+  if (!userProfile) return;
+  // Nav pill
+  document.getElementById('userPill').style.display = 'flex';
+  document.getElementById('navUserName').textContent = userProfile.name;
+  const navWrap = document.getElementById('navAvatarWrap');
+  navWrap.innerHTML = userProfile.picture
+    ? `<img class="user-avatar-sm" src="${userProfile.picture}" alt="">`
+    : `<div class="user-avatar-sm-fallback">${(userProfile.name||'?')[0]}</div>`;
+
+  // Composer
+  document.getElementById('signinBox').style.display  = 'none';
+  document.getElementById('composerBox').style.display= 'block';
+  document.getElementById('composerName').textContent = userProfile.name;
+  const avWrap = document.getElementById('composerAvatarWrap');
+  avWrap.innerHTML = userProfile.picture
+    ? `<img class="composer-avatar" src="${userProfile.picture}" alt="">`
+    : `<div class="composer-avatar-fallback">${(userProfile.name||'?')[0]}</div>`;
+}
+
+function signOut() {
+  if (!confirm('Sign out of Google?')) return;
+  if (accessToken && window.google?.accounts?.oauth2) {
+    google.accounts.oauth2.revoke(accessToken);
+  }
+  accessToken = ''; userProfile = null;
+  document.getElementById('userPill').style.display  = 'none';
+  document.getElementById('signinBox').style.display = 'flex';
+  document.getElementById('composerBox').style.display = 'none';
+  showToast('👋 Signed out');
+}
+
+// ── POST REAL COMMENT ────────────────────────────────────────────
+async function postComment() {
+  if (!accessToken) { showToast('⚠️ Sign in with Google first.'); return; }
+  const text = document.getElementById('cmtTextarea').value.trim();
+  if (!text) { showToast('⚠️ Write a comment first.'); return; }
+  if (!currentVid) return;
+
+  const btn     = document.getElementById('postBtn');
+  const spinner = document.getElementById('postSpinner');
+  btn.disabled  = true;
+  spinner.classList.add('show');
+  document.getElementById('cmtHint').textContent = 'Posting…';
+
+  try {
+    const body = {
+      snippet: {
+        videoId: currentVid,
+        topLevelComment: {
+          snippet: { textOriginal: text }
+        }
+      }
+    };
+
+    const r = await fetch('https://www.googleapis.com/youtube/v3/commentThreads?part=snippet', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!r.ok) {
+      const err = await r.json();
+      const msg = err?.error?.message || `HTTP ${r.status}`;
+      // Token expired?
+      if (r.status === 401) {
+        accessToken = '';
+        document.getElementById('signinBox').style.display = 'flex';
+        document.getElementById('composerBox').style.display = 'none';
+        throw new Error('Session expired. Please sign in again.');
+      }
+      throw new Error(msg);
+    }
+
+    const data = await r.json();
+    const snip = data.snippet?.topLevelComment?.snippet;
+
+    // Clear textarea
+    document.getElementById('cmtTextarea').value = '';
+    document.getElementById('cmtHint').textContent = 'Posts directly on YouTube';
+
+    // Inject comment at top of list
+    const list = document.getElementById('commentsList');
+    const emptyDiv = list.querySelector('.cmt-empty');
+    if (emptyDiv) emptyDiv.remove();
+    list.insertAdjacentHTML('afterbegin', buildCommentHTML({
+      id: data.id,
+      author: userProfile?.name || snip?.authorDisplayName || 'You',
+      picture: userProfile?.picture || snip?.authorProfileImageUrl || null,
+      text: text,
+      time: new Date().toISOString(),
+      likes: 0,
+      mine: true,
+    }, []));
+
+    // Update count
+    const badge = document.getElementById('cmtCount');
+    badge.textContent = parseInt(badge.textContent||0) + 1;
+
+    showToast('✅ Comment posted on YouTube!');
+  } catch(e) {
+    showToast('❌ ' + e.message);
+    document.getElementById('cmtHint').textContent = 'Posts directly on YouTube';
+  } finally {
+    btn.disabled = false;
+    spinner.classList.remove('show');
+  }
+}
+
+// Ctrl+Enter shortcut
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key==='Enter') {
+    if (document.activeElement?.id==='cmtTextarea') postComment();
+  }
+});
+
+// ── DATA FETCH ───────────────────────────────────────────────────
+async function resolveChannelId() {
+  const r = await apiFetch(`https://www.googleapis.com/youtube/v3/channels?part=id&forHandle=${CHANNEL_HANDLE}&key=${API_KEY}`);
+  if (!r.items?.length) throw new Error('Channel not found. Make sure YouTube Data API v3 is enabled.');
+  channelId = r.items[0].id;
+}
+
+async function fetchChannelStats() {
+  const r = await apiFetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${API_KEY}`);
+  const ch=r.items[0], s=ch.statistics;
+  document.getElementById('statVideos').textContent = fmtNum(s.videoCount);
+  document.getElementById('statSubs').textContent   = s.hiddenSubscriberCount?'Hidden':fmtNum(s.subscriberCount);
+  document.getElementById('statViews').textContent  = fmtNum(s.viewCount);
+  document.getElementById('aboutDesc').textContent  = ch.snippet.description||'Welcome to Everyday360R!';
+}
+
+async function fetchVideos(fresh=false) {
+  showLoading(true);
+  if (fresh) { allVideos=[]; nextPageToken=''; document.getElementById('videoGrid').innerHTML=''; }
+  let url=`https://www.googleapis.com/youtube/v3/search?part=id,snippet&channelId=${channelId}&maxResults=${MAX_RESULTS}&order=${currentSort}&type=video&key=${API_KEY}`;
+  if (nextPageToken) url+=`&pageToken=${nextPageToken}`;
+  const sr=await apiFetch(url);
+  nextPageToken=sr.nextPageToken||'';
+  if (!sr.items?.length){showLoading(false);renderGrid();return;}
+  const ids=sr.items.map(i=>i.id.videoId).filter(Boolean).join(',');
+  if (!ids){showLoading(false);renderGrid();return;}
+  const dr=await apiFetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,snippet&id=${ids}&key=${API_KEY}`);
+  const det={};(dr.items||[]).forEach(v=>{det[v.id]=v;});
+  sr.items.forEach(item=>{
+    const vid=item.id.videoId; if(!vid)return;
+    const d=det[vid]; if(!d)return;
+    const sn=d.snippet,st=d.statistics,th=sn.thumbnails;
+    allVideos.push({id:vid,title:sn.title,desc:sn.description,dateStr:timeAgo(sn.publishedAt),
+      views:st.viewCount?fmtNum(st.viewCount):'—',commentCount:st.commentCount||'0',
+      dur:parseDur(d.contentDetails.duration),thumb:(th.maxres||th.standard||th.high||th.medium||th.default).url,
+      isNew:isRecent(sn.publishedAt)});
+  });
+  showLoading(false);renderGrid();
+  document.getElementById('loadMoreWrap').style.display=nextPageToken?'block':'none';
+}
+async function loadMore(){await fetchVideos(false);}
+
+// ── GRID ─────────────────────────────────────────────────────────
+function renderGrid(){
+  let list=allVideos.filter(v=>!searchQuery||v.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  if(currentSort==='title')list.sort((a,b)=>a.title.localeCompare(b.title));
+  const grid=document.getElementById('videoGrid'),empty=document.getElementById('emptyState');
+  document.getElementById('vidCountLabel').textContent=list.length+' video'+(list.length!==1?'s':'');
+  if(!list.length){grid.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  grid.innerHTML=list.map((v,i)=>cardHTML(v,i)).join('');
+}
+function cardHTML(v,i){
+  const liked=likedSet.has(v.id);
+  return `<div class="card" style="animation-delay:${Math.min(i,12)*0.045}s" onclick="openPlayer('${esc(v.id)}')">
+    <div class="thumb"><img src="${esc(v.thumb)}" alt="${esc(v.title)}" loading="lazy">
+      <div class="thumb-over"><div class="play-btn-card"><svg width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <span class="dur">${v.dur}</span>${v.isNew?'<span class="badge-new">New</span>':''}
+    </div>
+    <div class="card-body">
+      <div class="card-title">${esc(v.title)}</div>
+      <div class="card-sub"><span>${v.views} views</span><span>${v.dateStr}</span></div>
+      <div class="card-acts" onclick="event.stopPropagation()">
+        <button class="act-btn ${liked?'liked':''}" id="lb-${v.id}" onclick="toggleLike('${esc(v.id)}',this)">${liked?'❤️':'♡'} ${liked?'Liked':'Like'}</button>
+        <button class="act-btn cmt-card" onclick="openPlayer('${esc(v.id)}')">💬 ${fmtNum(v.commentCount)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+function renderLiked(){
+  const list=allVideos.filter(v=>likedSet.has(v.id));
+  const grid=document.getElementById('likedGrid'),empty=document.getElementById('likedEmpty');
+  if(!list.length){grid.innerHTML='';empty.style.display='block';}
+  else{empty.style.display='none';grid.innerHTML=list.map((v,i)=>cardHTML(v,i)).join('');}
+}
+
+// ── PLAYER ───────────────────────────────────────────────────────
+function openPlayer(id){
+  const v=allVideos.find(v=>v.id===id); if(!v)return;
+  currentVid=id; cmtNextToken='';
+  document.getElementById('topbarTitle').textContent=v.title;
+  document.getElementById('viTitle').textContent=v.title;
+  document.getElementById('viViews').textContent=`${v.views} views · ${v.dateStr}`;
+  document.getElementById('viDesc').textContent=v.desc||'';
+  const yu=`https://www.youtube.com/watch?v=${id}`;
+  document.getElementById('viYtBtn').href=yu;
+  document.getElementById('veWatchBtn').href=yu;
+  syncPlayerLike(id);
+  buildIframe(id,false);
+  document.getElementById('playerPage').classList.add('open');
+  document.getElementById('playerPage').scrollTop=0;
+  document.body.style.overflow='hidden';
+  loadComments(id,true);
+}
+function buildIframe(id, useNoCookie) {
+  document.getElementById('videoError').classList.remove('show');
+  clearTimeout(window._errTimer);
+  window._iframeLoaded = false;
+
+  const old = document.getElementById('activeIframe');
+  if (old) old.remove();
+
+  const domain = useNoCookie ? 'www.youtube-nocookie.com' : 'www.youtube.com';
+  const iframe = document.createElement('iframe');
+  iframe.id = 'activeIframe';
+  iframe.src = `https://${domain}/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+  iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  iframe.allowFullscreen = true;
+  iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;z-index:1;';
+
+  // KEY FIX: onload fires when the YouTube player page loads successfully.
+  // This means the video is rendering — cancel the error timer and STOP.
+  // Never rebuild or restart the iframe after this point.
+  iframe.onload = () => {
+    window._iframeLoaded = true;
+    clearTimeout(window._errTimer);
+  };
+
+  document.getElementById('videoFrameWrap').appendChild(iframe);
+
+  // Only show error if iframe never loaded at all after 15s (truly blocked/no network)
+  window._errTimer = setTimeout(() => {
+    if (!window._iframeLoaded) {
+      document.getElementById('videoError').classList.add('show');
+    }
+  }, 15000);
+}
+
+window.addEventListener('message', e => {
+  try {
+    const d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+    // 101 / 150 = embedding explicitly disabled by the video owner on YouTube
+    if (d?.event === 'onError' && (d.info === 101 || d.info === 150)) {
+      clearTimeout(window._errTimer);
+      document.getElementById('videoError').classList.add('show');
+    }
+    // Any player state event = player is alive and running fine
+    if (d?.event === 'onStateChange') {
+      window._iframeLoaded = true;
+      clearTimeout(window._errTimer);
+    }
+  } catch(err) {}
+});
+function closePlayer(){
+  clearTimeout(window._errTimer);
+  document.getElementById('playerPage').classList.remove('open');
+  document.body.style.overflow='';
+  const old=document.getElementById('activeIframe'); if(old)old.remove();
+  document.getElementById('videoError').classList.remove('show');
+  currentVid=null;
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePlayer(); });
+
+// ── LIKE ─────────────────────────────────────────────────────────
+function toggleLike(id,btn){
+  if(likedSet.has(id)){likedSet.delete(id);btn.classList.remove('liked');btn.innerHTML='♡ Like';showToast('💔 Removed');}
+  else{likedSet.add(id);btn.classList.add('liked');btn.innerHTML='❤️ Liked';showToast('❤️ Liked!');}
+  localStorage.setItem('e360r_liked',JSON.stringify([...likedSet]));
+  syncPlayerLike(id);
+}
+function syncPlayerLike(id){
+  if(currentVid!==id)return;
+  const on=likedSet.has(id);
+  document.getElementById('viLikeIco').textContent=on?'❤️':'♡';
+  document.getElementById('viLikeTxt').textContent=on?'Liked':'Like';
+  on?document.getElementById('viLikeBtn').classList.add('liked'):document.getElementById('viLikeBtn').classList.remove('liked');
+}
+function playerLike(){
+  if(!currentVid)return;
+  const btn=document.getElementById('lb-'+currentVid)||document.createElement('button');
+  toggleLike(currentVid,btn);
+}
+
+// ── COMMENTS FETCH ────────────────────────────────────────────────
+async function loadComments(videoId,fresh=true){
+  const list=document.getElementById('commentsList');
+  if(fresh){cmtNextToken='';list.innerHTML='<div class="cmt-loading"><div class="mini-spin"></div> Loading comments…</div>';}
+  try{
+    let url=`https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=${MAX_CMT}&order=relevance&key=${API_KEY}`;
+    if(cmtNextToken)url+=`&pageToken=${cmtNextToken}`;
+    const r=await apiFetch(url);
+    cmtNextToken=r.nextPageToken||'';
+    if(fresh)list.innerHTML='';
+    if(!r.items?.length&&fresh){
+      list.innerHTML='<div class="cmt-empty"><div style="font-size:28px;opacity:.3;margin-bottom:8px">💬</div><div style="font-size:13px;color:var(--muted)">No comments yet. Be the first!</div></div>';
+    }
+    (r.items||[]).forEach(item=>{
+      const top=item.snippet.topLevelComment.snippet;
+      const replies=(item.replies?.comments||[]);
+      const html=buildCommentHTML({
+        id:item.id,
+        author:top.authorDisplayName||'Anonymous',
+        picture:top.authorProfileImageUrl||null,
+        text:top.textOriginal||top.textDisplay||'',
+        time:top.publishedAt,
+        likes:top.likeCount||0,
+        mine:false,
+      },replies);
+      list.insertAdjacentHTML('beforeend',html);
+    });
+    // Update badge
+    const v=allVideos.find(v=>v.id===videoId);
+    if(v)document.getElementById('cmtCount').textContent=fmtNum(v.commentCount);
+    // Load more btn
+    const old=document.getElementById('loadMoreCmtBtn'); if(old)old.remove();
+    if(cmtNextToken){
+      const btn=document.createElement('button');
+      btn.id='loadMoreCmtBtn'; btn.className='load-more-cmt';
+      btn.textContent='↓ Load more comments';
+      btn.onclick=()=>loadComments(videoId,false);
+      list.appendChild(btn);
+    }
+  }catch(e){
+    if(fresh)list.innerHTML=`<div class="cmt-empty"><div style="font-size:28px;opacity:.3;margin-bottom:8px">⚠️</div><div style="font-size:13px;color:var(--muted)">Couldn't load comments.<br><small>${esc(e.message)}</small></div></div>`;
+  }
+}
+
+function buildCommentHTML(c,replies){
+  const avatarHTML=c.picture
+    ?`<img src="${esc(c.picture)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+    :`${(c.author||'?')[0].toUpperCase()}`;
+  const repliesHTML=replies.length?`
+    <div class="replies-toggle" onclick="toggleReplies('rep-${c.id}')">▶ ${replies.length} repl${replies.length===1?'y':'ies'}</div>
+    <div class="replies-wrap" id="rep-${c.id}">
+      ${replies.map(rep=>{
+        const rs=rep.snippet;
+        const rAv=rs.authorProfileImageUrl
+          ?`<img src="${esc(rs.authorProfileImageUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+          :`${(rs.authorDisplayName||'?')[0].toUpperCase()}`;
+        return `<div class="reply-item">
+          <div class="reply-av">${rAv}</div>
+          <div class="reply-body"><div class="reply-author">${esc(rs.authorDisplayName||'Anonymous')}</div>
+          <div class="reply-text">${esc(rs.textOriginal||'')}</div></div></div>`;
+      }).join('')}
+    </div>`:'';
+  return `<div class="comment-item">
+    <div class="cmt-row">
+      <div class="cmt-avatar">${avatarHTML}</div>
+      <div class="cmt-body">
+        <div class="cmt-author">
+          ${esc(c.author||'Anonymous')}
+          ${c.mine?'<span class="mine-badge">✓ You</span>':''}
+          <span class="cmt-date">${timeAgo(c.time)}</span>
+        </div>
+        <div class="cmt-text">${esc(c.text)}</div>
+        <div class="cmt-likes"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="12" height="12"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg> ${c.likes}</div>
+        ${repliesHTML}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleReplies(id){
+  const el=document.getElementById(id); if(!el)return;
+  const tog=el.previousElementSibling;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(tog)tog.textContent=tog.textContent.replace(open?'▼':'▶',open?'▶':'▼');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────
+function onSearch(val){searchQuery=val;renderGrid();}
+function setSort(mode,btn){
+  if(mode===currentSort)return;currentSort=mode;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');
+  if(mode!=='title')fetchVideos(true);else renderGrid();
+}
+function switchTab(name){
+  ['videos','liked','about'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===name);
+    document.getElementById('pane-'+t).style.display=t===name?'':'none';
+  });
+  if(name==='liked')renderLiked();
+}
+async function apiFetch(url){
+  const r=await fetch(url),json=await r.json();
+  if(!r.ok)throw new Error(json?.error?.message||`HTTP ${r.status}`);
+  return json;
+}
+function showLoading(on){document.getElementById('loadingState').style.display=on?'flex':'none';}
+function parseDur(iso){if(!iso)return'—';const m=iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);if(!m)return'—';const h=+(m[1]||0),mn=+(m[2]||0),s=+(m[3]||0);return h?`${h}:${pad(mn)}:${pad(s)}`:`${mn}:${pad(s)}`;}
+function pad(n){return String(n).padStart(2,'0');}
+function fmtNum(n){n=+n;if(n>=1e9)return(n/1e9).toFixed(1).replace(/\.0$/,'')+'B';if(n>=1e6)return(n/1e6).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1e3)return(n/1e3).toFixed(1).replace(/\.0$/,'')+'K';return String(n);}
+function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';if(s<2592000)return Math.floor(s/86400)+'d ago';if(s<31536000)return Math.floor(s/2592000)+'mo ago';return Math.floor(s/31536000)+'y ago';}
+function isRecent(d){return(Date.now()-new Date(d))<7*24*3600*1000;}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
